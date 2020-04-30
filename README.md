@@ -5,7 +5,7 @@
 <p align="center">
   <img src="Astrobee.png" width="500" height="276">
   <br />
-  Source: <a href="https://ntrs.nasa.gov/search.jsp?R=20180003515">Fluckiger et al. (2018)</a>
+  Source: <a href="https://ntrs.nasa.gov/search.jsp?R=20180003515">Fl&uumlckiger et al. (2018)</a>
 </p>
 
 ## Multivariable Adaptive Robust Control for a Free-Flying Space Robot
