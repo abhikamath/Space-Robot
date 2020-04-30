@@ -3,7 +3,7 @@
 <br />
 <br />
 <p align="center">
-  <img src="Media/Astrobee.png">
+  <img src="Astrobee.png">
   <br />
   <br />
   Source: <a href="https://ntrs.nasa.gov/search.jsp?R=20180003515">Fluckiger et al. (2018)</a>
