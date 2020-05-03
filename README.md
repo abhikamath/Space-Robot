@@ -6,7 +6,6 @@
   <br />
   Source: <a href="https://ntrs.nasa.gov/search.jsp?R=20180003515">Fl&uumlckiger et al. (2018)</a>
 </p>
-<br />
 
 ## Multivariable Adaptive Robust Control for a Free-Flying Space Robot
 
