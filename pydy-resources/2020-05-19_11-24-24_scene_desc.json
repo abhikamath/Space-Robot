@@ -1,0 +1,158 @@
+{
+    "source": "PyDy",
+    "name": "unnamed",
+    "newtonian_frame": "N",
+    "workspaceSize": 0.2,
+    "objects": {
+        "4979523312": {
+            "name": "Body_m",
+            "color": "black",
+            "material": "default",
+            "type": "Cube",
+            "length": 0.32,
+            "reference_frame_name": "B",
+            "simulation_id": 4979523312,
+            "init_orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.5403023058681398,
+                0.8414709848078965,
+                0.0,
+                0.0,
+                -0.8414709848078965,
+                0.5403023058681398,
+                0.0,
+                0.0,
+                -0.04487845252308796,
+                0.028816122979634106,
+                1.0
+            ]
+        },
+        "5006460128": {
+            "name": "Body_l",
+            "color": "green",
+            "material": "default",
+            "type": "Cube",
+            "length": 0.32,
+            "reference_frame_name": "B",
+            "simulation_id": 5006460128,
+            "init_orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.5403023058681398,
+                0.8414709848078965,
+                0.0,
+                0.0,
+                -0.8414709848078965,
+                0.5403023058681398,
+                0.0,
+                0.0,
+                -0.06483627670417677,
+                -0.10097651817694758,
+                1.0
+            ]
+        },
+        "4979522752": {
+            "name": "Body_r",
+            "color": "green",
+            "material": "default",
+            "type": "Cube",
+            "length": 0.32,
+            "reference_frame_name": "B",
+            "simulation_id": 4979522752,
+            "init_orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.5403023058681398,
+                0.8414709848078965,
+                0.0,
+                0.0,
+                -0.8414709848078965,
+                0.5403023058681398,
+                0.0,
+                0.0,
+                0.06483627670417677,
+                0.10097651817694758,
+                1.0
+            ]
+        }
+    },
+    "cameras": {
+        "4977216536": {
+            "name": "DefaultCamera",
+            "color": "grey",
+            "material": "default",
+            "type": "PerspectiveCamera",
+            "reference_frame_name": "N",
+            "simulation_id": 4977216536,
+            "init_orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                10.0,
+                1.0
+            ],
+            "fov": 45.0,
+            "near": 1.0,
+            "far": 1000.0
+        }
+    },
+    "lights": {
+        "4977213512": {
+            "name": "DefaultLight",
+            "type": "PointLight",
+            "color": "white",
+            "simulation_id": 4977213512,
+            "init_orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                10.0,
+                1.0
+            ]
+        }
+    },
+    "simulationData": "2020-05-19_11-24-24_simulation_data.json",
+    "timeDelta": 0.05005005005005005,
+    "startTime": 0.0,
+    "fps": 30,
+    "speedup": 1.5015015015015016,
+    "timeSteps": 1000,
+    "constant_map": {
+        "I_x": 0.1083,
+        "I_y": 0.1083,
+        "I_z": 0.1083,
+        "m": 7
+    }
+}
