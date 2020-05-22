@@ -1,10 +1,24 @@
-%% Astrobee Model
+% Astrobee Model
 
-A = [zeros(12, 12)];
-A(7:12, 1:6) = eye(6);
+%% A Matrix
 
-B = [zeros(12, 6)];
-B(1:6, :) = eye(6);
+load Matrices/A_matrix.mat
+A = A_matrix
+
+%% B Matrix: Original
+
+load Matrices/B_original.mat
+B = B_original
+
+%% B Matrix: Stowed
+
+load Matrices/B_stowed.mat
+B = B_stowed
+
+%% B Matrix: Deployed
+
+load Matrices/B_deployed.mat
+B = B_deployed
 
 %% Full-State Feedback
 
