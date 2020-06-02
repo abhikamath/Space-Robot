@@ -27,12 +27,14 @@ syms s
 tf_full_sym = simplify(Cf * inv(s * eye(12) - A) * B + Df);
 pretty(tf_full_sym)
 
-%% Translation Controller Design
+%% Section 1: Translation Controller Design -> Marginally Stable Pole at the Origin
+
+% Top-half matrix (t1): 
+
+% Satisfaction of the first interpolation condition
 
 translation_full = [tf_full_sym(1:3, 1:3); tf_full_sym(7:9, 1:3)];
 pretty(translation_full);
-
-% translation 1 (top half matrix)
 
 Gp_t1 = translation_full(1:3, 1:3);
 P_t1 = Gp_t1 * s;
@@ -67,17 +69,21 @@ Gc_t1_sym = simplify((UR_t1 * inv(eye(size(My_t1 * Mp_t1)) - My_t1 * Mp_t1) * My
 % 
 % Gc_t1 = diag(Gc_t1_arr)
 
-%% Run this section first to calculate 'tz' to ensure that the second interpolation condition is satisfied
+%% Section 2: Translation Controller Design -> Unstable Double-Pole at the Origin
+
+% Bottom-half matrix (t2):
+
+% Run this section first to calculate 'tz' to ensure that the second interpolation condition is satisfied
 
 % d^k(T)/ds^k|(s=0) = 0, where k = 1 (since there is a double unstable pole
 % (multiplicity ap = 2) in the plant at s = 0; k = ap - 1) -> 2nd
 % interpolation condition
 
-C_t2 = 7939/500; % Constant
+C_t2 = 500/7939; % Constant
 Wn = 0.01; % Natural Frequency of the Control System
 K = Wn^2/C_t2; % Controller Gain
 Z = 2^-0.5; % Damping Ratio
-tp = 1/(10*Wn); % Time Constant of the added pole 
+tp = 1/(10*Wn); % Time constant (of the included pole)
 
 syms s tz
 
@@ -86,7 +92,9 @@ dTF = diff(TF,s)
 eqn = subs(dTF,s,0) == 0;
 tz = solve(eqn,tz)
 
-%% Youla Control Design (Translation)
+%% Section 3: Translation Controller Design -> Unstable Double-Pole at the Origin
+
+% Youla Control Design
 
 s = tf('s');
 
@@ -143,11 +151,6 @@ Gc_t2_sym = diag([Gc_t2_sym_term Gc_t2_sym_term Gc_t2_sym_term])
 
 Gc_t = [Gc_t1_sym Gc_t2_sym]
 
-%% Attitude Controller Design
-
-attitude_full = [tf_full_sym(4:6, 4:6); tf_full_sym(10:12, 4:6)];
-pretty(attitude_full)
-
 %% Coordinate Feedback
 
 % Cc = [zeros(6, 12)];
@@ -167,7 +170,7 @@ pretty(attitude_full)
 % translation_coord = [tf_coord_sym(1:3, 1:3); tf_coord_sym(7:9, 1:3)];
 % pretty(translation_coord)
 % 
-% attitude_full = [tf_coord_sym(4:6, 4:6); tf_coord_sym(10:12, 4:6)];
+% attitude_coord = [tf_coord_sym(4:6, 4:6); tf_coord_sym(10:12, 4:6)];
 % pretty(attitude_coord)
 
 
