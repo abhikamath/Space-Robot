@@ -56,20 +56,19 @@ Mt = Mp_t1 * My_t1
 
 Gc_t1_sym = simplify((UR_t1 * inv(eye(size(My_t1 * Mp_t1)) - My_t1 * Mp_t1) * My_t1 * UL_t1))
 
-Gc_t1 = tf(double(Gc_t1_sym));
+% Convert to a string
+Gc_t1_arr = [zeros(1, 3)];
+Gc_t1_str = [];
+for i = 1:size(Gc_t1_sym, 1)
+        if isnumeric()
+        Gc_t1_str = char(Gc_t1_sym(i, i));
+        % Define ?s? as transfer function variable 
+        s = tf('s');
+        % Evaluate the expression:
+        eval(Gc_t1_arr(i) == Gc_t1_str)
+end
 
-% % Convert to a string
-% Gc_t1_arr = [zeros(1, 3)];
-% Gc_t1_str = [];
-% for i = 1:size(Gc_t1_sym, 1)
-%         Gc_t1_str = char(Gc_t1_sym(i, i));
-%         % Define ?s? as transfer function variable 
-%         s = tf('s');
-%         % Evaluate the expression:
-%         eval(Gc_t1_arr(i) == Gc_t1_str)
-% end
-% 
-% Gc_t1 = diag(Gc_t1_arr)
+Gc_t1 = diag(Gc_t1_arr)
 
 %% Section 2: Translation Controller Design -> Unstable Double-Pole at the Origin
 
@@ -82,7 +81,7 @@ Gc_t1 = tf(double(Gc_t1_sym));
 % interpolation condition
 
 C_t2 = 500/7939; % Constant
-Wn = 3.25; % Natural Frequency of the Control System
+Wn = 0.01; % Natural Frequency of the Control System
 K = Wn^2/C_t2; % Controller Gain
 Z = 2^-0.5; % Damping Ratio
 tp = 1/(10*Wn); % Time constant (of the included pole)
@@ -102,11 +101,11 @@ s = tf('s');
 
 % Constants & Design Parameters
 C_t2 = 500/7939; % Constant
-Wn = 3.25; % Natural Frequency of the Control System
+Wn = 0.01; % Natural Frequency of the Control System
 K = Wn^2/C_t2; % Controller Gain
 Z = 2^-0.5; % Damping Ratio
 tp = 1/(10*Wn); % Time Constant of the added pole 
-tz = (4*2^(1/2))/13 + 2/65; % 100*2^(1/2) + 10;
+tz = 100*2^(1/2) + 10;
 
 % Plant TF, 'Gp'
 Gp = zpk(minreal(C_t2/s^2))
@@ -156,13 +155,11 @@ Gc_t = [Gc_t1_sym Gc_t2_sym]
 %% Simulation
 
 Gp = minreal([tf_full(1:3, 1:3); tf_full(7:9, 1:3)], 1e-05);
-Gc = [Gc_t1 Gc_t2]
+Gc = Gc_t2
 Lu = minreal(Gc * Gp, 1e-05);
 Ly = minreal(Gp * Gc, 1e-05);
-Y = minreal(inv(eye(3) + Lu) * Gc); 
-Ty = minreal(inv(eye(6) + Ly) * Ly); 
-Sy = minreal(inv(eye(6) + Ly), 1e-05);
-Su = minreal(inv(eye(3) + Lu), 1e-05);
+Y = minreal(inv(eye(2) + Lu) * Gc); Ty = minreal(inv(eye(2) + Ly) * Ly); Sy = minreal(inv(eye(2) + Ly), 1e-05);
+Su = minreal(inv(eye(2) + Lu), 1e-05);
 
 figure
 step(Ty);
@@ -172,36 +169,15 @@ step(Y);
 
 figure
 sigma(Y, Ty, Sy, Su)
-[l, hObj] = legend('$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
+[l, hObj] = legend('$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 20);
 set(l,'string',{'$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$'});
 hL = findobj(hObj,'type','line');
 set(hL,'linewidth', 2); 
 
 figure
 sigma(Gc, Gp, Ly, Y)
-[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$','Interpreter','latex','FontSize', 12);
+[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$','Interpreter','latex','FontSize', 20);
 set(l,'string',{'$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2);
-
-figure
-sigma(Gc, Gp, Y)
-[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$Y$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$G_{c}$', '$G_{p}$', '$Y$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2);
-
-figure
-sigma(Ly, Sy, Ty)
-[l, hObj] = legend('$L_{y}$', '$S_{y}$', '$T_{y}$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$L_{y}$', '$S_{y}$', '$T_{y}$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2);
-
-figure
-sigma(Sy, Su)
-[l, hObj] = legend('$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$S_{y}$', '$S_{u}$'});
 hL = findobj(hObj,'type','line');
 set(hL,'linewidth', 2); 
 

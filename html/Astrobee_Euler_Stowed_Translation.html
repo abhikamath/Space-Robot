@@ -1,0 +1,834 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Astrobee_Euler_Stowed_Translation</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-06-01"><meta name="DC.source" content="Astrobee_Euler_Stowed_Translation.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">System</a></li><li><a href="#3">Section 1: Translation Controller Design -&gt; Marginally Stable Pole at the Origin</a></li><li><a href="#4">Section 2: Translation Controller Design -&gt; Unstable Double-Pole at the Origin</a></li><li><a href="#5">Section 3: Translation Controller Design -&gt; Unstable Double-Pole at the Origin</a></li><li><a href="#6">Simulation</a></li><li><a href="#7">Coordinate Feedback</a></li></ul></div><pre class="codeinput"><span class="comment">% Astrobee Model</span>
+</pre><h2 id="2">System</h2><pre class="codeinput"><span class="comment">% A Matrix</span>
+
+load <span class="string">Matrices/A_matrix.mat</span>
+A = A_matrix
+
+<span class="comment">% B Matrix: Stowed</span>
+
+load <span class="string">Matrices/B_stowed.mat</span>
+B = B_stowed
+
+<span class="comment">% Full-State Feedback</span>
+
+Cf = eye(12);
+
+Df = [zeros(12, 6)];
+
+sys_full = ss(A, B, Cf, Df);
+
+tf_full = tf(sys_full);
+
+syms <span class="string">s</span>
+
+tf_full_sym = simplify(Cf * inv(s * eye(12) - A) * B + Df);
+pretty(tf_full_sym)
+</pre><pre class="codeoutput">A =
+     0     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0     0
+     1     0     0     0     0     0     0     0     0     0     0     0
+     0     1     0     0     0     0     0     0     0     0     0     0
+     0     0     1     0     0     0     0     0     0     0     0     0
+     0     0     0     1     0     0     0     0     0     0     0     0
+     0     0     0     0     1     0     0     0     0     0     0     0
+     0     0     0     0     0     1     0     0     0     0     0     0
+B =
+    0.0630         0         0         0         0         0
+         0    0.0630         0         0         0         0
+         0         0    0.0630         0         0         0
+         0         0         0    5.4054         0         0
+         0         0         0         0    4.9505         0
+         0         0         0         0         0    5.3191
+         0         0         0         0         0         0
+         0         0         0         0         0         0
+         0         0         0         0         0         0
+         0         0         0         0         0         0
+         0         0         0         0         0         0
+         0         0         0         0         0         0
+/   500                                        \
+| ------,    0,      0,     0,      0,     0   |
+| 7939 s                                       |
+|                                              |
+|           500                                |
+|    0,   ------,    0,     0,      0,     0   |
+|         7939 s                               |
+|                                              |
+|                   500                        |
+|    0,      0,   ------,   0,      0,     0   |
+|                 7939 s                       |
+|                                              |
+|                           200                |
+|    0,      0,      0,    ----,    0,     0   |
+|                          37 s                |
+|                                              |
+|                                  500         |
+|    0,      0,      0,     0,    -----,   0   |
+|                                 101 s        |
+|                                              |
+|                                          250 |
+|    0,      0,      0,     0,      0,    ---- |
+|                                         47 s |
+|                                              |
+|   #1,      0,      0,     0,      0,     0   |
+|                                              |
+|    0,     #1,      0,     0,      0,     0   |
+|                                              |
+|    0,      0,     #1,     0,      0,     0   |
+|                                              |
+|                          200                 |
+|    0,      0,      0,   -----,    0,     0   |
+|                             2                |
+|                         37 s                 |
+|                                              |
+|                                  500         |
+|    0,      0,      0,     0,   ------,   0   |
+|                                     2        |
+|                                101 s         |
+|                                              |
+|                                         250  |
+|    0,      0,      0,     0,      0,   ----- |
+|                                            2 |
+\                                        47 s  /
+
+where
+
+           500
+   #1 == -------
+               2
+         7939 s
+
+
+</pre><h2 id="3">Section 1: Translation Controller Design -&gt; Marginally Stable Pole at the Origin</h2><pre class="codeinput"><span class="comment">% Top-half matrix (t1):</span>
+
+<span class="comment">% Satisfaction of the first interpolation condition</span>
+
+translation_full = [tf_full_sym(1:3, 1:3); tf_full_sym(7:9, 1:3)];
+pretty(translation_full);
+
+Gp_t1 = translation_full(1:3, 1:3);
+P_t1 = Gp_t1 * s;
+
+[UL_t1, UR_t1, S_t1] = smithForm(P_t1, s)
+
+Mp_t1 = S_t1/s
+
+K_t1 = 1;
+tp_t1 = 100;
+
+Y1 = (K_t1 * s)/(tp_t1 * s + 1);
+Y2 = Y1;
+Y3 = Y1;
+
+My_t1 = diag([Y1 Y2 Y3])
+
+Mt = Mp_t1 * My_t1
+
+Gc_t1_sym = simplify((UR_t1 * inv(eye(size(My_t1 * Mp_t1)) - My_t1 * Mp_t1) * My_t1 * UL_t1))
+
+Gc_t1 = tf(double(Gc_t1_sym));
+
+<span class="comment">% % Convert to a string</span>
+<span class="comment">% Gc_t1_arr = [zeros(1, 3)];</span>
+<span class="comment">% Gc_t1_str = [];</span>
+<span class="comment">% for i = 1:size(Gc_t1_sym, 1)</span>
+<span class="comment">%         Gc_t1_str = char(Gc_t1_sym(i, i));</span>
+<span class="comment">%         % Define ?s? as transfer function variable</span>
+<span class="comment">%         s = tf('s');</span>
+<span class="comment">%         % Evaluate the expression:</span>
+<span class="comment">%         eval(Gc_t1_arr(i) == Gc_t1_str)</span>
+<span class="comment">% end</span>
+<span class="comment">%</span>
+<span class="comment">% Gc_t1 = diag(Gc_t1_arr)</span>
+</pre><pre class="codeoutput">/    500                    \
+|  ------,    0,       0    |
+|  7939 s                   |
+|                           |
+|             500           |
+|    0,     ------,    0    |
+|           7939 s          |
+|                           |
+|                      500  |
+|    0,       0,     ------ |
+|                    7939 s |
+|                           |
+|   500                     |
+| -------,    0,       0    |
+|       2                   |
+| 7939 s                    |
+|                           |
+|            500            |
+|    0,    -------,    0    |
+|                2          |
+|          7939 s           |
+|                           |
+|                     500   |
+|    0,       0,    ------- |
+|                         2 |
+\                   7939 s  /
+
+UL_t1 =
+[ 0, 0, 1]
+[ 0, 1, 0]
+[ 1, 0, 0]
+UR_t1 =
+[        0,        0, 7939/500]
+[        0, 7939/500,        0]
+[ 7939/500,        0,        0]
+S_t1 =
+[ 1, 0, 0]
+[ 0, 1, 0]
+[ 0, 0, 1]
+Mp_t1 =
+[ 1/s,   0,   0]
+[   0, 1/s,   0]
+[   0,   0, 1/s]
+My_t1 =
+[ s/(100*s + 1),             0,             0]
+[             0, s/(100*s + 1),             0]
+[             0,             0, s/(100*s + 1)]
+Mt =
+[ 1/(100*s + 1),             0,             0]
+[             0, 1/(100*s + 1),             0]
+[             0,             0, 1/(100*s + 1)]
+Gc_t1_sym =
+[ 7939/50000,          0,          0]
+[          0, 7939/50000,          0]
+[          0,          0, 7939/50000]
+</pre><h2 id="4">Section 2: Translation Controller Design -&gt; Unstable Double-Pole at the Origin</h2><pre class="codeinput"><span class="comment">% Bottom-half matrix (t2):</span>
+
+<span class="comment">% Run this section first to calculate 'tz' to ensure that the second interpolation condition is satisfied</span>
+
+<span class="comment">% d^k(T)/ds^k|(s=0) = 0, where k = 1 (since there is a double unstable pole</span>
+<span class="comment">% (multiplicity ap = 2) in the plant at s = 0; k = ap - 1) -&gt; 2nd</span>
+<span class="comment">% interpolation condition</span>
+
+C_t2 = 500/7939; <span class="comment">% Constant</span>
+Wn = 0.01; <span class="comment">% Natural Frequency of the Control System</span>
+K = Wn^2/C_t2; <span class="comment">% Controller Gain</span>
+Z = 2^-0.5; <span class="comment">% Damping Ratio</span>
+tp = 1/(10*Wn); <span class="comment">% Time constant (of the included pole)</span>
+
+syms <span class="string">s</span> <span class="string">tz</span>
+
+TF = ((K*C_t2)*(tz*s + 1))/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1))
+dTF = diff(TF,s)
+eqn = subs(dTF,s,0) == 0;
+tz = solve(eqn,tz)
+</pre><pre class="codeoutput">TF =
+((s*tz)/10000 + 1/10000)/((10*s + 1)*(s^2 + (2^(1/2)*s)/100 + 1/10000))
+dTF =
+tz/(10000*(10*s + 1)*(s^2 + (2^(1/2)*s)/100 + 1/10000)) - (10*((s*tz)/10000 + 1/10000))/((10*s + 1)^2*(s^2 + (2^(1/2)*s)/100 + 1/10000)) - (((s*tz)/10000 + 1/10000)*(2*s + 2^(1/2)/100))/((10*s + 1)*(s^2 + (2^(1/2)*s)/100 + 1/10000)^2)
+tz =
+100*2^(1/2) + 10
+</pre><h2 id="5">Section 3: Translation Controller Design -&gt; Unstable Double-Pole at the Origin</h2><pre class="codeinput"><span class="comment">% Youla Control Design</span>
+
+s = tf(<span class="string">'s'</span>);
+
+<span class="comment">% Constants &amp; Design Parameters</span>
+C_t2 = 500/7939; <span class="comment">% Constant</span>
+Wn = 0.01; <span class="comment">% Natural Frequency of the Control System</span>
+K = Wn^2/C_t2; <span class="comment">% Controller Gain</span>
+Z = 2^-0.5; <span class="comment">% Damping Ratio</span>
+tp = 1/(10*Wn); <span class="comment">% Time Constant of the added pole</span>
+tz = 100*2^(1/2) + 10;
+
+<span class="comment">% Plant TF, 'Gp'</span>
+Gp = zpk(minreal(C_t2/s^2))
+
+<span class="comment">% Chosen Youla Parameter, 'Y' -&gt; Y(0) = 0</span>
+Y = zpk(minreal(((K*s^2)*(tz*s + 1)/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1))),1e-05))
+
+<span class="comment">% Complementary Sensitivity TF, 'T' -&gt; T(0) = 1 (1st interpolation</span>
+<span class="comment">% condition)</span>
+T = zpk(minreal((Y*Gp),1e-05))
+
+<span class="comment">% Sensitivity TF, 'S'</span>
+S = zpk(minreal((1-T),1e-05))
+
+<span class="comment">% Controller TF, 'Gc'</span>
+Gc = zpk(minreal((Y/S),1e-05))
+
+<span class="comment">% Return Ratio, 'L'</span>
+L = zpk(minreal((Gc*Gp),1e-05))
+
+GpS = zpk(minreal((Gp*S),1e-05))
+
+<span class="comment">% Internal stability check</span>
+Y_stability = isstable(Y)
+T_stability = isstable(T)
+S_stability = isstable(S)
+GpS_stability = isstable(GpS)
+
+M2 = 1/getPeakGain(S) <span class="comment">% M2-margin</span>
+BW = bandwidth(T) <span class="comment">% Bandwidth of the closed-loop</span>
+AE = getPeakGain(Y) <span class="comment">% Maximum actuator effort</span>
+
+figure(1)
+bodemag(Y, S, T);
+legend(<span class="string">'Y'</span>,<span class="string">'S'</span>,<span class="string">'T'</span>);
+
+Gc_t2 = [tf(Gc) 0 0; 0 tf(Gc) 0; 0 0 tf(Gc)]
+
+<span class="comment">% Convert to symbolic matrix</span>
+[Num,Den] = tfdata(tf(Gc), <span class="string">'v'</span>)
+syms <span class="string">s</span>
+Gc_t2_sym_term = poly2sym(Num, s)/poly2sym(Den, s)
+Gc_t2_sym = diag([Gc_t2_sym_term Gc_t2_sym_term Gc_t2_sym_term])
+
+Gc_t = [Gc_t1_sym Gc_t2_sym]
+</pre><pre class="codeoutput">
+Gp =
+ 
+  0.06298
+  -------
+    s^2
+ 
+Continuous-time zero/pole/gain model.
+
+
+Y =
+ 
+      0.024043 s^2 (s+0.006604)
+  ---------------------------------
+  (s+0.1) (s^2 + 0.01414s + 0.0001)
+ 
+Continuous-time zero/pole/gain model.
+
+
+T =
+ 
+       0.0015142 (s+0.006604)
+  ---------------------------------
+  (s+0.1) (s^2 + 0.01414s + 0.0001)
+ 
+Continuous-time zero/pole/gain model.
+
+
+S =
+ 
+           s^2 (s+0.1141)
+  ---------------------------------
+  (s+0.1) (s^2 + 0.01414s + 0.0001)
+ 
+Continuous-time zero/pole/gain model.
+
+
+Gc =
+ 
+  0.024043 (s+0.006604)
+  ---------------------
+       (s+0.1141)
+ 
+Continuous-time zero/pole/gain model.
+
+
+L =
+ 
+  0.0015142 (s+0.006604)
+  ----------------------
+      s^2 (s+0.1141)
+ 
+Continuous-time zero/pole/gain model.
+
+
+GpS =
+ 
+         0.06298 (s+0.1141)
+  ---------------------------------
+  (s+0.1) (s^2 + 0.01414s + 0.0001)
+ 
+Continuous-time zero/pole/gain model.
+
+Y_stability =
+  logical
+   1
+T_stability =
+  logical
+   1
+S_stability =
+  logical
+   1
+GpS_stability =
+  logical
+   1
+M2 =
+    0.8909
+BW =
+    0.0214
+AE =
+    0.0240
+
+Gc_t2 =
+ 
+  From input 1 to output...
+       0.02404 s + 0.0001588
+   1:  ---------------------
+            s + 0.1141
+ 
+   2:  0
+ 
+   3:  0
+ 
+  From input 2 to output...
+   1:  0
+ 
+       0.02404 s + 0.0001588
+   2:  ---------------------
+            s + 0.1141
+ 
+   3:  0
+ 
+  From input 3 to output...
+   1:  0
+ 
+   2:  0
+ 
+       0.02404 s + 0.0001588
+   3:  ---------------------
+            s + 0.1141
+ 
+Continuous-time transfer function.
+
+Num =
+    0.0240    0.0002
+Den =
+    1.0000    0.1141
+Gc_t2_sym_term =
+((3464915774230499*s)/144115188075855872 + 5857948048047205/36893488147419103232)/(s + 4112403835698463/36028797018963968)
+Gc_t2_sym =
+[ ((3464915774230499*s)/144115188075855872 + 5857948048047205/36893488147419103232)/(s + 4112403835698463/36028797018963968),                                                                                                                          0,                                                                                                                          0]
+[                                                                                                                          0, ((3464915774230499*s)/144115188075855872 + 5857948048047205/36893488147419103232)/(s + 4112403835698463/36028797018963968),                                                                                                                          0]
+[                                                                                                                          0,                                                                                                                          0, ((3464915774230499*s)/144115188075855872 + 5857948048047205/36893488147419103232)/(s + 4112403835698463/36028797018963968)]
+Gc_t =
+[ 7939/50000,          0,          0, ((3464915774230499*s)/144115188075855872 + 5857948048047205/36893488147419103232)/(s + 4112403835698463/36028797018963968),                                                                                                                          0,                                                                                                                          0]
+[          0, 7939/50000,          0,                                                                                                                          0, ((3464915774230499*s)/144115188075855872 + 5857948048047205/36893488147419103232)/(s + 4112403835698463/36028797018963968),                                                                                                                          0]
+[          0,          0, 7939/50000,                                                                                                                          0,                                                                                                                          0, ((3464915774230499*s)/144115188075855872 + 5857948048047205/36893488147419103232)/(s + 4112403835698463/36028797018963968)]
+</pre><img vspace="5" hspace="5" src="Astrobee_Euler_Stowed_Translation_01.png" alt=""> <h2 id="6">Simulation</h2><pre class="codeinput">Gp = minreal([tf_full(1:3, 1:3); tf_full(7:9, 1:3)], 1e-05);
+Gc = [Gc_t1 Gc_t2]
+Lu = minreal(Gc * Gp, 1e-05);
+Ly = minreal(Gp * Gc, 1e-05);
+Y = minreal(inv(eye(3) + Lu) * Gc);
+Ty = minreal(inv(eye(6) + Ly) * Ly);
+Sy = minreal(inv(eye(6) + Ly), 1e-05);
+Su = minreal(inv(eye(3) + Lu), 1e-05);
+
+figure
+step(Ty);
+
+figure
+step(Y);
+
+figure
+sigma(Y, Ty, Sy, Su)
+[l, hObj] = legend(<span class="string">'$Y$'</span>, <span class="string">'$T_{y}$'</span>, <span class="string">'$S_{y}$'</span>, <span class="string">'$S_{u}$'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'FontSize'</span>, 12);
+set(l,<span class="string">'string'</span>,{<span class="string">'$Y$'</span>, <span class="string">'$T_{y}$'</span>, <span class="string">'$S_{y}$'</span>, <span class="string">'$S_{u}$'</span>});
+hL = findobj(hObj,<span class="string">'type'</span>,<span class="string">'line'</span>);
+set(hL,<span class="string">'linewidth'</span>, 2);
+
+figure
+sigma(Gc, Gp, Ly, Y)
+[l, hObj] = legend(<span class="string">'$G_{c}$'</span>, <span class="string">'$G_{p}$'</span>, <span class="string">'$L_{y}$'</span>, <span class="string">'$Y$'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'FontSize'</span>, 12);
+set(l,<span class="string">'string'</span>,{<span class="string">'$G_{c}$'</span>, <span class="string">'$G_{p}$'</span>, <span class="string">'$L_{y}$'</span>, <span class="string">'$Y$'</span>});
+hL = findobj(hObj,<span class="string">'type'</span>,<span class="string">'line'</span>);
+set(hL,<span class="string">'linewidth'</span>, 2);
+
+figure
+sigma(Gc, Gp, Y)
+[l, hObj] = legend(<span class="string">'$G_{c}$'</span>, <span class="string">'$G_{p}$'</span>, <span class="string">'$Y$'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'FontSize'</span>, 12);
+set(l,<span class="string">'string'</span>,{<span class="string">'$G_{c}$'</span>, <span class="string">'$G_{p}$'</span>, <span class="string">'$Y$'</span>});
+hL = findobj(hObj,<span class="string">'type'</span>,<span class="string">'line'</span>);
+set(hL,<span class="string">'linewidth'</span>, 2);
+
+figure
+sigma(Ly, Sy, Ty)
+[l, hObj] = legend(<span class="string">'$L_{y}$'</span>, <span class="string">'$S_{y}$'</span>, <span class="string">'$T_{y}$'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'FontSize'</span>, 12);
+set(l,<span class="string">'string'</span>,{<span class="string">'$L_{y}$'</span>, <span class="string">'$S_{y}$'</span>, <span class="string">'$T_{y}$'</span>});
+hL = findobj(hObj,<span class="string">'type'</span>,<span class="string">'line'</span>);
+set(hL,<span class="string">'linewidth'</span>, 2);
+
+figure
+sigma(Sy, Su)
+[l, hObj] = legend(<span class="string">'$S_{y}$'</span>, <span class="string">'$S_{u}$'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'FontSize'</span>, 12);
+set(l,<span class="string">'string'</span>,{<span class="string">'$S_{y}$'</span>, <span class="string">'$S_{u}$'</span>});
+hL = findobj(hObj,<span class="string">'type'</span>,<span class="string">'line'</span>);
+set(hL,<span class="string">'linewidth'</span>, 2);
+</pre><pre class="codeoutput">
+Gc =
+ 
+  From input 1 to output...
+   1:  0.1588
+ 
+   2:  0
+ 
+   3:  0
+ 
+  From input 2 to output...
+   1:  0
+ 
+   2:  0.1588
+ 
+   3:  0
+ 
+  From input 3 to output...
+   1:  0
+ 
+   2:  0
+ 
+   3:  0.1588
+ 
+  From input 4 to output...
+       0.02404 s + 0.0001588
+   1:  ---------------------
+            s + 0.1141
+ 
+   2:  0
+ 
+   3:  0
+ 
+  From input 5 to output...
+   1:  0
+ 
+       0.02404 s + 0.0001588
+   2:  ---------------------
+            s + 0.1141
+ 
+   3:  0
+ 
+  From input 6 to output...
+   1:  0
+ 
+   2:  0
+ 
+       0.02404 s + 0.0001588
+   3:  ---------------------
+            s + 0.1141
+ 
+Continuous-time transfer function.
+
+</pre><img vspace="5" hspace="5" src="Astrobee_Euler_Stowed_Translation_02.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Euler_Stowed_Translation_03.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Euler_Stowed_Translation_04.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Euler_Stowed_Translation_05.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Euler_Stowed_Translation_06.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Euler_Stowed_Translation_07.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Euler_Stowed_Translation_08.png" alt=""> <h2 id="7">Coordinate Feedback</h2><pre class="codeinput"><span class="comment">% Cc = [zeros(6, 12)];</span>
+<span class="comment">% Cc(1:6, 1:6) = eye(6);</span>
+<span class="comment">%</span>
+<span class="comment">% Dc = [zeros(6, 6)];</span>
+<span class="comment">%</span>
+<span class="comment">% sys_coord = ss(A, B, Cc, Dc);</span>
+<span class="comment">%</span>
+<span class="comment">% tf_coord = tf(sys_coord);</span>
+<span class="comment">%</span>
+<span class="comment">% syms s</span>
+<span class="comment">%</span>
+<span class="comment">% tf_coord_sym = simplify(Cc * inv(s * eye(12) - A) * B + Dc);</span>
+<span class="comment">% pretty(tf_coord_sym)</span>
+<span class="comment">%</span>
+<span class="comment">% translation_coord = [tf_coord_sym(1:3, 1:3); tf_coord_sym(7:9, 1:3)];</span>
+<span class="comment">% pretty(translation_coord)</span>
+<span class="comment">%</span>
+<span class="comment">% attitude_coord = [tf_coord_sym(4:6, 4:6); tf_coord_sym(10:12, 4:6)];</span>
+<span class="comment">% pretty(attitude_coord)</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% Astrobee Model
+
+%% System
+
+% A Matrix
+
+load Matrices/A_matrix.mat
+A = A_matrix
+
+% B Matrix: Stowed
+
+load Matrices/B_stowed.mat
+B = B_stowed
+
+% Full-State Feedback
+
+Cf = eye(12);
+
+Df = [zeros(12, 6)];
+
+sys_full = ss(A, B, Cf, Df);
+
+tf_full = tf(sys_full);
+
+syms s
+
+tf_full_sym = simplify(Cf * inv(s * eye(12) - A) * B + Df);
+pretty(tf_full_sym)
+
+%% Section 1: Translation Controller Design -> Marginally Stable Pole at the Origin
+
+% Top-half matrix (t1): 
+
+% Satisfaction of the first interpolation condition
+
+translation_full = [tf_full_sym(1:3, 1:3); tf_full_sym(7:9, 1:3)];
+pretty(translation_full);
+
+Gp_t1 = translation_full(1:3, 1:3);
+P_t1 = Gp_t1 * s;
+
+[UL_t1, UR_t1, S_t1] = smithForm(P_t1, s)
+
+Mp_t1 = S_t1/s
+
+K_t1 = 1;
+tp_t1 = 100;
+
+Y1 = (K_t1 * s)/(tp_t1 * s + 1);
+Y2 = Y1;
+Y3 = Y1;
+
+My_t1 = diag([Y1 Y2 Y3])
+
+Mt = Mp_t1 * My_t1
+
+Gc_t1_sym = simplify((UR_t1 * inv(eye(size(My_t1 * Mp_t1)) - My_t1 * Mp_t1) * My_t1 * UL_t1))
+
+Gc_t1 = tf(double(Gc_t1_sym));
+
+% % Convert to a string
+% Gc_t1_arr = [zeros(1, 3)];
+% Gc_t1_str = [];
+% for i = 1:size(Gc_t1_sym, 1)
+%         Gc_t1_str = char(Gc_t1_sym(i, i));
+%         % Define ?s? as transfer function variable 
+%         s = tf('s');
+%         % Evaluate the expression:
+%         eval(Gc_t1_arr(i) == Gc_t1_str)
+% end
+% 
+% Gc_t1 = diag(Gc_t1_arr)
+
+%% Section 2: Translation Controller Design -> Unstable Double-Pole at the Origin
+
+% Bottom-half matrix (t2):
+
+% Run this section first to calculate 'tz' to ensure that the second interpolation condition is satisfied
+
+% d^k(T)/ds^k|(s=0) = 0, where k = 1 (since there is a double unstable pole
+% (multiplicity ap = 2) in the plant at s = 0; k = ap - 1) -> 2nd
+% interpolation condition
+
+C_t2 = 500/7939; % Constant
+Wn = 0.01; % Natural Frequency of the Control System
+K = Wn^2/C_t2; % Controller Gain
+Z = 2^-0.5; % Damping Ratio
+tp = 1/(10*Wn); % Time constant (of the included pole)
+
+syms s tz
+
+TF = ((K*C_t2)*(tz*s + 1))/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1))
+dTF = diff(TF,s)
+eqn = subs(dTF,s,0) == 0;
+tz = solve(eqn,tz)
+
+%% Section 3: Translation Controller Design -> Unstable Double-Pole at the Origin
+
+% Youla Control Design
+
+s = tf('s');
+
+% Constants & Design Parameters
+C_t2 = 500/7939; % Constant
+Wn = 0.01; % Natural Frequency of the Control System
+K = Wn^2/C_t2; % Controller Gain
+Z = 2^-0.5; % Damping Ratio
+tp = 1/(10*Wn); % Time Constant of the added pole 
+tz = 100*2^(1/2) + 10;
+
+% Plant TF, 'Gp'
+Gp = zpk(minreal(C_t2/s^2))
+
+% Chosen Youla Parameter, 'Y' -> Y(0) = 0
+Y = zpk(minreal(((K*s^2)*(tz*s + 1)/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1))),1e-05))
+
+% Complementary Sensitivity TF, 'T' -> T(0) = 1 (1st interpolation
+% condition)
+T = zpk(minreal((Y*Gp),1e-05))
+
+% Sensitivity TF, 'S'
+S = zpk(minreal((1-T),1e-05))
+
+% Controller TF, 'Gc'
+Gc = zpk(minreal((Y/S),1e-05))
+
+% Return Ratio, 'L'
+L = zpk(minreal((Gc*Gp),1e-05))
+
+GpS = zpk(minreal((Gp*S),1e-05))
+
+% Internal stability check
+Y_stability = isstable(Y)
+T_stability = isstable(T)
+S_stability = isstable(S)
+GpS_stability = isstable(GpS)
+
+M2 = 1/getPeakGain(S) % M2-margin
+BW = bandwidth(T) % Bandwidth of the closed-loop
+AE = getPeakGain(Y) % Maximum actuator effort
+
+figure(1)
+bodemag(Y, S, T);
+legend('Y','S','T');
+
+Gc_t2 = [tf(Gc) 0 0; 0 tf(Gc) 0; 0 0 tf(Gc)]
+
+% Convert to symbolic matrix
+[Num,Den] = tfdata(tf(Gc), 'v')
+syms s
+Gc_t2_sym_term = poly2sym(Num, s)/poly2sym(Den, s)
+Gc_t2_sym = diag([Gc_t2_sym_term Gc_t2_sym_term Gc_t2_sym_term])
+
+Gc_t = [Gc_t1_sym Gc_t2_sym]
+
+%% Simulation
+
+Gp = minreal([tf_full(1:3, 1:3); tf_full(7:9, 1:3)], 1e-05);
+Gc = [Gc_t1 Gc_t2]
+Lu = minreal(Gc * Gp, 1e-05);
+Ly = minreal(Gp * Gc, 1e-05);
+Y = minreal(inv(eye(3) + Lu) * Gc); 
+Ty = minreal(inv(eye(6) + Ly) * Ly); 
+Sy = minreal(inv(eye(6) + Ly), 1e-05);
+Su = minreal(inv(eye(3) + Lu), 1e-05);
+
+figure
+step(Ty);
+
+figure
+step(Y);
+
+figure
+sigma(Y, Ty, Sy, Su)
+[l, hObj] = legend('$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
+set(l,'string',{'$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$'});
+hL = findobj(hObj,'type','line');
+set(hL,'linewidth', 2); 
+
+figure
+sigma(Gc, Gp, Ly, Y)
+[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$','Interpreter','latex','FontSize', 12);
+set(l,'string',{'$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$'});
+hL = findobj(hObj,'type','line');
+set(hL,'linewidth', 2);
+
+figure
+sigma(Gc, Gp, Y)
+[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$Y$','Interpreter','latex','FontSize', 12);
+set(l,'string',{'$G_{c}$', '$G_{p}$', '$Y$'});
+hL = findobj(hObj,'type','line');
+set(hL,'linewidth', 2);
+
+figure
+sigma(Ly, Sy, Ty)
+[l, hObj] = legend('$L_{y}$', '$S_{y}$', '$T_{y}$','Interpreter','latex','FontSize', 12);
+set(l,'string',{'$L_{y}$', '$S_{y}$', '$T_{y}$'});
+hL = findobj(hObj,'type','line');
+set(hL,'linewidth', 2);
+
+figure
+sigma(Sy, Su)
+[l, hObj] = legend('$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
+set(l,'string',{'$S_{y}$', '$S_{u}$'});
+hL = findobj(hObj,'type','line');
+set(hL,'linewidth', 2); 
+
+%% Coordinate Feedback
+
+% Cc = [zeros(6, 12)];
+% Cc(1:6, 1:6) = eye(6);
+% 
+% Dc = [zeros(6, 6)];
+% 
+% sys_coord = ss(A, B, Cc, Dc);
+% 
+% tf_coord = tf(sys_coord);
+% 
+% syms s
+% 
+% tf_coord_sym = simplify(Cc * inv(s * eye(12) - A) * B + Dc);
+% pretty(tf_coord_sym)
+% 
+% translation_coord = [tf_coord_sym(1:3, 1:3); tf_coord_sym(7:9, 1:3)];
+% pretty(translation_coord)
+% 
+% attitude_coord = [tf_coord_sym(4:6, 4:6); tf_coord_sym(10:12, 4:6)];
+% pretty(attitude_coord)
+
+
+
+
+##### SOURCE END #####
+--></body></html>
