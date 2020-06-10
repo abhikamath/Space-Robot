@@ -49,12 +49,14 @@ Wpss=ss(Wptf); [Ap,Bp,Cp,Dp]=ssdata(Wpss);
           Ap,Bp,Cp,Dp,...
           Au,Bu,Cu,Du,...
           Ad,Bd,Cd,Dd);
-      
 
+% P_1 = [A,B1,B2,C1,C2,D11,D12,D21,D22];
+B = []
+P = ss(P_1);
 
 %Compute Hinf controller
-[Gamma,acp,bcp,ccp,dcp,acl,bcl,ccl,dcl]=...
-    hinfopt(A,B1,B2,C1,C2,D11,D12,D21,D22);
+[acp,bcp,ccp,dcp,acl,bcl,ccl,dcl,Gamma]=...
+    hinfsyn(P);
 
 % We have to shift back the A matrix of the controller to make this
 % approach work properly.
@@ -63,7 +65,7 @@ acp1=acp+0.05*eye(size(acp));
 %% By students, compute Tzw using lft command
 
 % open loop
-[aly,bly,cly,dly]=series(Ag,Bg,Cg,Dg,acp1,bcp,ccp,dcp);
+[aly,bly,cly,dly]=series(acp1,bcp,ccp,dcp,Ag,Bg,Cg,Dg);
 [aly,bly,cly,dly]=minreal(aly,bly,cly,dly);
 
 %closed loop
@@ -72,9 +74,9 @@ acp1=acp+0.05*eye(size(acp));
 as=at;
 bs=bt;
 cs=-ct;
-ds=eye(3)-dt;
+ds=eye(6)-dt;
 
-[ay,by,cy,dy]=series(acp1,bcp,ccp,dcp,as,bs,cs,ds);
+[ay,by,cy,dy]=series(as,bs,cs,ds,acp1,bcp,ccp,dcp);
 [ay,by,cy,dy]=minreal(ay,by,cy,dy);
 
 figure(1);
@@ -132,7 +134,10 @@ Gc_tf=minreal(Gc_tf);
 % 
 % save('Gc_Hinf_tf.mat','Gc_tf')  % function form
 
-Y = minreal(inv(eye(3) + Lu) * Gc); 
-Ty = minreal(inv(eye(6) + Ly) * Ly);
-Sy = minreal(inv(eye(6) + Ly), 1e-02);
+% Y = minreal(inv(eye(3) + Lu) * Gc); 
+% Ty = minreal(inv(eye(6) + Ly) * Ly);
+% Sy = minreal(inv(eye(6) + Ly), 1e-02);
+
+
+
 

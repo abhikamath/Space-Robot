@@ -112,25 +112,25 @@ tz = double(solve(eqn,tz))
 s = tf('s');
 
 % Plant TF, 'Gp'
-G = minreal(C/s^2, 1e-01) % Nonzero terms of Mp
+G = minreal(C/s^2, 1e-04) % Nonzero terms of Mp
 
 % Chosen Youla Parameter, 'Y' -> Y(0) = 0
-Ys = minreal(((K*s^2)*(tz*s + 1)/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1)*(tpx*s + 1)^2)),1e-01)
+Ys = minreal(((K*s^2)*(tz*s + 1)/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1)*(tpx*s + 1)^2)),1e-04)
 
 % Complementary Sensitivity TF, 'T' -> T(0) = 1 (1st interpolation
 % condition)
-T = minreal((Ys*G),1e-01)
+T = minreal((Ys*G),1e-04)
 
 % Sensitivity TF, 'S'
-S = minreal((1-T),1e-01)
+S = minreal((1-T),1e-04)
 
 % Controller TF, 'Gc'
-Gc_term = minreal((Ys/S),1e-01)
+Gc_term = minreal((Ys/S),1e-04)
 
 % Return Ratio, 'L'
-L = minreal((Gc_term*G),1e-01)
+L = minreal((Gc_term*G),1e-04)
 
-GS = minreal((G*S),1e-01)
+GS = minreal((G*S),1e-04)
 
 % Internal stability check
 Y_stability = isstable(Ys)
@@ -152,24 +152,24 @@ legend('Ys','S','T');
 % disp('Gc_sym = ');
 % pretty(Gc_sym);
 
-My = minreal([[Ys 0 0; 0 Ys 0; 0 0 Ys] zeros(3, 3)], 1e-01);
-Mt = minreal(Mp * My, 1e-01);
-% Mt = minreal(T * eye(6), 1e-01);
-Y = minreal(UR * My * UL, 1e-01);
+My = minreal([[Ys 0 0; 0 Ys 0; 0 0 Ys] zeros(3, 3)], 1e-04);
+Mt = minreal(Mp * My, 1e-04);
+% Mt = minreal(T * eye(6), 1e-04);
+Y = minreal(UR * My * UL, 1e-04);
 
 %% Simulation
 
 % Y = minreal(inv(eye(3) + Lu) * Gc); 
 % Ty = minreal(inv(eye(6) + Ly) * Ly);
-% Sy = minreal(inv(eye(6) + Ly), 1e-01);
+% Sy = minreal(inv(eye(6) + Ly), 1e-04);
 
-Ty = minreal(inv(UL) * Mp * My * UL, 1e-01);
+Ty = minreal(inv(UL) * Mp * My * UL, 1e-04);
 
-Sy = minreal(eye(size(Ty)) - Ty, 1e-01);
+Sy = minreal(eye(size(Ty)) - Ty, 1e-04);
 
-Gc = minreal(UR * inv(eye(size(My * Mp)) - (My * Mp)) * My * UL, 1e-01);
+Gc = minreal(UR * inv(eye(size(My * Mp)) - (My * Mp)) * My * UL, 1e-04);
 
-SyGp = minreal(inv(UL) * (eye(size(Mp * My)) - (Mp * My)) * Mp * inv(UR), 1e-01);
+SyGp = minreal(inv(UL) * (eye(size(Mp * My)) - (Mp * My)) * Mp * inv(UR), 1e-04);
 
 % MIMO Internal Stability Check:
 Ty_stability = isstable(Ty)
@@ -183,9 +183,9 @@ k_Gp = max(max(SV_Gp))/min(min(SV_Gp)) % condition-number check for Gp
 SV_Gc = sigma(Gc); 
 k_Gc = max(max(SV_Gc))/min(min(SV_Gc)) % condition-number check for Gc
 
-Lu = minreal(Gc * Gp, 1e-01);
-Ly = minreal(Gp * Gc, 1e-01);
-Su = minreal(inv(eye(3) + Lu), 1e-01);
+Lu = minreal(Gc * Gp, 1e-04);
+Ly = minreal(Gp * Gc, 1e-04);
+Su = minreal(inv(eye(3) + Lu), 1e-04);
 
 figure
 step(Ty);

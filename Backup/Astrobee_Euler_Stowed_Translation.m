@@ -33,43 +33,74 @@ pretty(tf_full_sym)
 
 % Satisfaction of the first interpolation condition
 
-translation_full = [tf_full_sym(1:3, 1:3); tf_full_sym(7:9, 1:3)];
-pretty(translation_full);
+translation_full = [tf_full(1:3, 1:3); tf_full(7:9, 1:3)];
+% pretty(translation_full);
 
-Gp_t1 = translation_full(1:3, 1:3);
-P_t1 = Gp_t1 * s;
+G_t1 = translation_full(1:3, 1:3);
 
-[UL_t1, UR_t1, S_t1] = smithForm(P_t1, s)
+Gp_t1 = translation_full(1, 1);
 
-Mp_t1 = S_t1/s
+K_t1 = 500/7939;
 
-K_t1 = 1;
+% P_t1 = Gp_t1 * s;
+% 
+% [UL_t1, UR_t1, S_t1] = smithForm(P_t1, s)
+% 
+% Mp_t1 = S_t1/s
+% 
+% K_t1 = 1;
+% tp_t1 = 100;
+% 
+% Y1 = (K_t1 * s)/(tp_t1 * s + 1);
+% Y2 = Y1;
+% Y3 = Y1;
+% 
+% My_t1 = diag([Y1 Y2 Y3])
+% 
+% Mt = Mp_t1 * My_t1
+% 
+% Gc_t1_sym = simplify((UR_t1 * inv(eye(size(My_t1 * Mp_t1)) - My_t1 * Mp_t1) * My_t1 * UL_t1))
+% 
+% Gc_t1 = tf(double(Gc_t1_sym));
+
+s = tf('s');
+
 tp_t1 = 100;
 
-Y1 = (K_t1 * s)/(tp_t1 * s + 1);
-Y2 = Y1;
-Y3 = Y1;
+% Chosen Youla Parameter, 'Y' -> Y(0) = 0
+Y_t1 = s/(K_t1*(tp_t1 * s + 1));
 
-My_t1 = diag([Y1 Y2 Y3])
+% Complementary Sensitivity TF, 'T' -> T(0) = 1 (1st interpolation
+% condition)
+T_t1 = minreal((Y_t1*Gp_t1),1e-04)
 
-Mt = Mp_t1 * My_t1
+% Sensitivity TF, 'S'
+S_t1 = minreal((1-T_t1),1e-04)
 
-Gc_t1_sym = simplify((UR_t1 * inv(eye(size(My_t1 * Mp_t1)) - My_t1 * Mp_t1) * My_t1 * UL_t1))
+% Controller TF, 'Gc'
+Gc_t1 = minreal((Y_t1/S_t1),1e-04)
 
-Gc_t1 = tf(double(Gc_t1_sym));
+% Return Ratio, 'L'
+L_t1 = minreal((Gc_t1*Gp_t1),1e-04)
 
-% % Convert to a string
-% Gc_t1_arr = [zeros(1, 3)];
-% Gc_t1_str = [];
-% for i = 1:size(Gc_t1_sym, 1)
-%         Gc_t1_str = char(Gc_t1_sym(i, i));
-%         % Define ?s? as transfer function variable 
-%         s = tf('s');
-%         % Evaluate the expression:
-%         eval(Gc_t1_arr(i) == Gc_t1_str)
-% end
-% 
-% Gc_t1 = diag(Gc_t1_arr)
+GpS_t1 = minreal((Gp_t1*S_t1),1e-04)
+
+% Internal stability check
+Y_t1_stability = isstable(Y_t1)
+T_t1_stability = isstable(T_t1)
+S_t1_stability = isstable(S_t1)
+GpS_t1_stability = isstable(GpS_t1)
+
+M2_t2 = 1/getPeakGain(S_t1) % M2-margin
+BW_t2 = bandwidth(T_t1) % Bandwidth of the closed-loop
+AE_t2 = getPeakGain(Y_t1) % Maximum actuator effort
+
+figure(1)
+bodemag(Y_t1, S_t1, T_t1);
+legend('Y_t1','S_t1','T_t1');
+
+Gc_1 = Gc_t1 * eye(3);
+
 
 %% Section 2: Translation Controller Design -> Unstable Double-Pole at the Origin
 
@@ -83,16 +114,16 @@ Gc_t1 = tf(double(Gc_t1_sym));
 
 C_t2 = 500/7939; % Constant
 Wn = 3.25; % Natural Frequency of the Control System
-K = Wn^2/C_t2; % Controller Gain
+K_t2 = Wn^2/C_t2; % Controller Gain
 Z = 2^-0.5; % Damping Ratio
-tp = 1/(10*Wn); % Time constant (of the included pole)
+tp_t2 = 1/(10*Wn); % Time constant (of the included pole)
 
 syms s tz
 
-TF = ((K*C_t2)*(tz*s + 1))/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1))
+TF = ((K_t2*C_t2)*(tz*s + 1))/((s^2 + 2*Z*Wn*s + Wn^2)*(tp_t2*s + 1))
 dTF = diff(TF,s)
 eqn = subs(dTF,s,0) == 0;
-tz = solve(eqn,tz)
+tz = double(solve(eqn,tz))
 
 %% Section 3: Translation Controller Design -> Unstable Double-Pole at the Origin
 
@@ -100,69 +131,61 @@ tz = solve(eqn,tz)
 
 s = tf('s');
 
-% Constants & Design Parameters
-C_t2 = 500/7939; % Constant
-Wn = 3.25; % Natural Frequency of the Control System
-K = Wn^2/C_t2; % Controller Gain
-Z = 2^-0.5; % Damping Ratio
-tp = 1/(10*Wn); % Time Constant of the added pole 
-tz = (4*2^(1/2))/13 + 2/65; % 100*2^(1/2) + 10;
+% % Constants & Design Parameters
+% C_t2 = 500/7939; % Constant
+% Wn = 3.25; % Natural Frequency of the Control System
+% K = Wn^2/C_t2; % Controller Gain
+% Z = 2^-0.5; % Damping Ratio
+% tp = 1/(10*Wn); % Time Constant of the added pole 
+% tz = (4*2^(1/2))/13 + 2/65; % 100*2^(1/2) + 10;
 
 % Plant TF, 'Gp'
-Gp = zpk(minreal(C_t2/s^2))
+Gp_t2 = zpk(minreal(C_t2/s^2))
 
 % Chosen Youla Parameter, 'Y' -> Y(0) = 0
-Y = zpk(minreal(((K*s^2)*(tz*s + 1)/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1))),1e-05))
+Y_t2 = zpk(minreal(((K_t2*s^2)*(tz*s + 1)/((s^2 + 2*Z*Wn*s + Wn^2)*(tp_t2*s + 1))),1e-04))
 
 % Complementary Sensitivity TF, 'T' -> T(0) = 1 (1st interpolation
 % condition)
-T = zpk(minreal((Y*Gp),1e-05))
+T_t2 = zpk(minreal((Y_t2*Gp_t2),1e-04))
 
 % Sensitivity TF, 'S'
-S = zpk(minreal((1-T),1e-05))
+S_t2 = zpk(minreal((1-T_t2),1e-04))
 
 % Controller TF, 'Gc'
-Gc = zpk(minreal((Y/S),1e-05))
+Gc_t2 = zpk(minreal((Y_t2/S_t2),1e-04))
 
 % Return Ratio, 'L'
-L = zpk(minreal((Gc*Gp),1e-05))
+L_t2 = zpk(minreal((Gc_t2*Gp_t2),1e-04))
 
-GpS = zpk(minreal((Gp*S),1e-05))
+GpS_t2 = zpk(minreal((Gp_t2*S_t2),1e-04))
 
 % Internal stability check
-Y_stability = isstable(Y)
-T_stability = isstable(T)
-S_stability = isstable(S)
-GpS_stability = isstable(GpS)
+Y_t2_stability = isstable(Y_t2)
+T_t2_stability = isstable(T_t2)
+S_t2_stability = isstable(S_t2)
+GpS_t2_stability = isstable(GpS_t2)
 
-M2 = 1/getPeakGain(S) % M2-margin
-BW = bandwidth(T) % Bandwidth of the closed-loop
-AE = getPeakGain(Y) % Maximum actuator effort
+M2_t2 = 1/getPeakGain(S_t2) % M2-margin
+BW_t2 = bandwidth(T_t2) % Bandwidth of the closed-loop
+AE_t2 = getPeakGain(Y_t2) % Maximum actuator effort
 
 figure(1)
-bodemag(Y, S, T);
-legend('Y','S','T');
+bodemag(Y_t2, S_t2, T_t2);
+legend('Y_t2','S_t2','T_t2');
 
-Gc_t2 = [tf(Gc) 0 0; 0 tf(Gc) 0; 0 0 tf(Gc)]
-
-% Convert to symbolic matrix
-[Num,Den] = tfdata(tf(Gc), 'v')
-syms s
-Gc_t2_sym_term = poly2sym(Num, s)/poly2sym(Den, s)
-Gc_t2_sym = diag([Gc_t2_sym_term Gc_t2_sym_term Gc_t2_sym_term])
-
-Gc_t = [Gc_t1_sym Gc_t2_sym]
+Gc_2 = Gc_t2 * eye(3);
 
 %% Simulation
 
-Gp = minreal([tf_full(1:3, 1:3); tf_full(7:9, 1:3)], 1e-05);
-Gc = [Gc_t1 Gc_t2]
-Lu = minreal(Gc * Gp, 1e-05);
-Ly = minreal(Gp * Gc, 1e-05);
+Gp = minreal([tf_full(1:3, 1:3); tf_full(7:9, 1:3)], 1e-04);
+Gc = [Gc_1 Gc_2]
+Lu = minreal(Gc * Gp, 1e-04);
+Ly = minreal(Gp * Gc, 1e-04);
 Y = minreal(inv(eye(3) + Lu) * Gc); 
 Ty = minreal(inv(eye(6) + Ly) * Ly); 
-Sy = minreal(inv(eye(6) + Ly), 1e-05);
-Su = minreal(inv(eye(3) + Lu), 1e-05);
+Sy = minreal(inv(eye(6) + Ly), 1e-04);
+Su = minreal(inv(eye(3) + Lu), 1e-04);
 
 figure
 step(Ty);

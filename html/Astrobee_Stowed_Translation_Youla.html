@@ -1,0 +1,684 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Astrobee_Stowed_Translation_Youla</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-06-08"><meta name="DC.source" content="Astrobee_Stowed_Translation_Youla.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Translation</a></li><li><a href="#2">System</a></li><li><a href="#3">Smith-McMillan Form</a></li><li><a href="#4">Interpolation Conditions</a></li><li><a href="#5">Control Design</a></li><li><a href="#6">Simulation</a></li></ul></div><h2 id="1">Translation</h2><pre class="codeinput"><span class="comment">% Run sections sequentially</span>
+</pre><h2 id="2">System</h2><pre class="codeinput"><span class="comment">% A Matrix</span>
+
+load <span class="string">Matrices/A_matrix.mat</span>
+A = A_matrix
+
+<span class="comment">% B Matrix: Stowed</span>
+
+load <span class="string">Matrices/B_stowed.mat</span>
+B = B_stowed
+
+<span class="comment">% Full-State Feedback</span>
+
+Cf = eye(12);
+
+Df = [zeros(12, 6)];
+
+sys_full = ss(A, B, Cf, Df);
+
+tf_full = minreal(tf(sys_full));
+
+tf_translation = minreal([tf_full(1:3, 1:3); tf_full(7:9, 1:3)]);
+
+tf_full_sym = simplify(tf2sym(tf_full));
+disp(<span class="string">'tf_full_sym = '</span>);
+pretty(tf_full_sym);
+
+tf_translation_sym = simplify(tf2sym(tf_translation));
+disp(<span class="string">'tf_translation_sym = '</span>);
+pretty(tf_translation_sym);
+</pre><pre class="codeoutput">A =
+     0     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0     0
+     1     0     0     0     0     0     0     0     0     0     0     0
+     0     1     0     0     0     0     0     0     0     0     0     0
+     0     0     1     0     0     0     0     0     0     0     0     0
+     0     0     0     1     0     0     0     0     0     0     0     0
+     0     0     0     0     1     0     0     0     0     0     0     0
+     0     0     0     0     0     1     0     0     0     0     0     0
+B =
+    0.0630         0         0         0         0         0
+         0    0.0630         0         0         0         0
+         0         0    0.0630         0         0         0
+         0         0         0    5.4054         0         0
+         0         0         0         0    4.9505         0
+         0         0         0         0         0    5.3191
+         0         0         0         0         0         0
+         0         0         0         0         0         0
+         0         0         0         0         0         0
+         0         0         0         0         0         0
+         0         0         0         0         0         0
+         0         0         0         0         0         0
+tf_full_sym = 
+/   500                                        \
+| ------,    0,      0,     0,      0,     0   |
+| 7939 s                                       |
+|                                              |
+|           500                                |
+|    0,   ------,    0,     0,      0,     0   |
+|         7939 s                               |
+|                                              |
+|                   500                        |
+|    0,      0,   ------,   0,      0,     0   |
+|                 7939 s                       |
+|                                              |
+|                           200                |
+|    0,      0,      0,    ----,    0,     0   |
+|                          37 s                |
+|                                              |
+|                                  500         |
+|    0,      0,      0,     0,    -----,   0   |
+|                                 101 s        |
+|                                              |
+|                                          250 |
+|    0,      0,      0,     0,      0,    ---- |
+|                                         47 s |
+|                                              |
+|   #1,      0,      0,     0,      0,     0   |
+|                                              |
+|    0,     #1,      0,     0,      0,     0   |
+|                                              |
+|    0,      0,     #1,     0,      0,     0   |
+|                                              |
+|                          200                 |
+|    0,      0,      0,   -----,    0,     0   |
+|                             2                |
+|                         37 s                 |
+|                                              |
+|                                  500         |
+|    0,      0,      0,     0,   ------,   0   |
+|                                     2        |
+|                                101 s         |
+|                                              |
+|                                         250  |
+|    0,      0,      0,     0,      0,   ----- |
+|                                            2 |
+\                                        47 s  /
+
+where
+
+           500
+   #1 == -------
+               2
+         7939 s
+
+
+tf_translation_sym = 
+/    500                    \
+|  ------,    0,       0    |
+|  7939 s                   |
+|                           |
+|             500           |
+|    0,     ------,    0    |
+|           7939 s          |
+|                           |
+|                      500  |
+|    0,       0,     ------ |
+|                    7939 s |
+|                           |
+|   500                     |
+| -------,    0,       0    |
+|       2                   |
+| 7939 s                    |
+|                           |
+|            500            |
+|    0,    -------,    0    |
+|                2          |
+|          7939 s           |
+|                           |
+|                     500   |
+|    0,       0,    ------- |
+|                         2 |
+\                   7939 s  /
+
+</pre><h2 id="3">Smith-McMillan Form</h2><pre class="codeinput"><span class="comment">% help smform</span>
+
+s=tf(<span class="string">'s'</span>);
+
+Gp = tf_translation;
+
+Mp = minreal(smform(Gp));
+
+syms <span class="string">s</span>
+
+Gp_sym = tf_translation_sym;
+
+[UL_sym, H] = hermiteForm(Gp_sym * s^2);
+disp(<span class="string">'UL_sym = '</span>);
+pretty(UL_sym);
+
+Mp_sym = tf2sym(Mp);
+disp(<span class="string">'Mp_sym = '</span>);
+pretty(Mp_sym);
+
+UR_sym = (UL_sym * Gp_sym)\Mp_sym;
+disp(<span class="string">'UR_sym = '</span>);
+pretty(UR_sym);
+
+UL = sym2tf(UL_sym);
+
+UR = sym2tf(UR_sym);
+</pre><pre class="codeoutput">UL_sym = 
+/          7939             \
+| 0, 0, 0, ----,   0,    0  |
+|           500             |
+|                           |
+|                7939       |
+| 0, 0, 0,   0,  ----,   0  |
+|                 500       |
+|                           |
+|                      7939 |
+| 0, 0, 0,   0,    0,  ---- |
+|                       500 |
+|                           |
+| 1, 0, 0,  -s,    0,    0  |
+|                           |
+| 0, 1, 0,   0,   -s,    0  |
+|                           |
+\ 0, 0, 1,   0,    0,   -s  /
+
+Mp_sym = 
+/  1         \
+| --,  0,  0 |
+|  2         |
+| s          |
+|            |
+|      1     |
+|  0, --,  0 |
+|      2     |
+|     s      |
+|            |
+|          1 |
+|  0,  0, -- |
+|          2 |
+|         s  |
+|            |
+|  0,  0,  0 |
+|            |
+|  0,  0,  0 |
+|            |
+\  0,  0,  0 /
+
+UR_sym = 
+/ 1, 0, 0 \
+|         |
+| 0, 1, 0 |
+|         |
+\ 0, 0, 1 /
+
+</pre><h2 id="4">Interpolation Conditions</h2><pre class="codeinput"><span class="comment">% Run this section first to calculate 'tz' to ensure that the second interpolation condition is satisfied</span>
+
+<span class="comment">% d^k(T)/ds^k|(s=0) = 0, where k = 1 (since there is a double unstable pole</span>
+<span class="comment">% (multiplicity ap = 2) in the plant at s = 0; k = ap - 1) -&gt; 2nd</span>
+<span class="comment">% interpolation condition</span>
+
+<span class="comment">% Constants &amp; Design Parameters</span>
+
+C = 1; <span class="comment">% Constant</span>
+Wn = 3.25; <span class="comment">% Natural Frequency of the Control System</span>
+K = Wn^2/C; <span class="comment">% Controller Gain</span>
+Z = 2^-0.5; <span class="comment">% Damping Ratio</span>
+tp = 1/(10*Wn); <span class="comment">% Time constant (of the included pole)</span>
+
+syms <span class="string">s</span> <span class="string">tz</span>
+
+T_eqn = ((K*C)*(tz*s + 1))/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1));
+dT_eqn = diff(T_eqn,s);
+eqn = subs(dT_eqn,s,0) == 0;
+tz = double(solve(eqn,tz))
+</pre><pre class="codeoutput">tz =
+    0.4659
+</pre><h2 id="5">Control Design</h2><pre class="codeinput">s = tf(<span class="string">'s'</span>);
+
+<span class="comment">% Plant TF, 'Gp'</span>
+G = zpk(minreal(C/s^2)) <span class="comment">% Nonzero terms of Mp</span>
+
+<span class="comment">% Chosen Youla Parameter, 'Y' -&gt; Y(0) = 0</span>
+Y = zpk(minreal(((K*s^2)*(tz*s + 1)/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1))),1e-03))
+
+<span class="comment">% Complementary Sensitivity TF, 'T' -&gt; T(0) = 1 (1st interpolation</span>
+<span class="comment">% condition)</span>
+T = zpk(minreal((Y*G),1e-03))
+
+<span class="comment">% Sensitivity TF, 'S'</span>
+S = zpk(minreal((1-T),1e-03))
+
+<span class="comment">% Controller TF, 'Gc'</span>
+Gc_term = zpk(minreal((Y/S),1e-03))
+
+<span class="comment">% Return Ratio, 'L'</span>
+L = zpk(minreal((Gc_term*G),1e-03))
+
+GS = zpk(minreal((G*S),1e-03))
+
+<span class="comment">% Internal stability check</span>
+Y_stability = isstable(Y)
+T_stability = isstable(T)
+S_stability = isstable(S)
+GS_stability = isstable(GS)
+
+M2 = 1/getPeakGain(S) <span class="comment">% M2-margin</span>
+BW = bandwidth(T) <span class="comment">% Bandwidth of the closed-loop</span>
+AE = getPeakGain(Y) <span class="comment">% Maximum actuator effort</span>
+
+figure(1)
+bodemag(Y, S, T);
+legend(<span class="string">'Y'</span>,<span class="string">'S'</span>,<span class="string">'T'</span>);
+
+Gc = minreal([tf(Gc_term) 0 0 0 0 0; 0 tf(Gc_term) 0 0 0 0; 0 0 tf(Gc_term) 0 0 0]);
+
+Gc_sym = expand(tf2sym(Gc));
+disp(<span class="string">'Gc_sym = '</span>);
+pretty(Gc_sym);
+</pre><pre class="codeoutput">
+G =
+ 
+   1
+  ---
+  s^2
+ 
+Continuous-time zero/pole/gain model.
+
+
+Y =
+ 
+       159.94 s^2 (s+2.146)
+  -------------------------------
+  (s+32.5) (s^2 + 4.596s + 10.56)
+ 
+Continuous-time zero/pole/gain model.
+
+
+T =
+ 
+         159.94 (s+2.146)
+  -------------------------------
+  (s+32.5) (s^2 + 4.596s + 10.56)
+ 
+Continuous-time zero/pole/gain model.
+
+
+S =
+ 
+  (s+9.381e-08) (s-9.381e-08) (s+37.1)
+  ------------------------------------
+    (s+32.5) (s^2 + 4.596s + 10.56)
+ 
+Continuous-time zero/pole/gain model.
+
+
+Gc_term =
+ 
+  159.94 (s+2.146)
+  ----------------
+      (s+37.1)
+ 
+Continuous-time zero/pole/gain model.
+
+
+L =
+ 
+  159.94 (s+2.146)
+  ----------------
+    s^2 (s+37.1)
+ 
+Continuous-time zero/pole/gain model.
+
+
+GS =
+ 
+             (s+37.1)
+  -------------------------------
+  (s+32.5) (s^2 + 4.596s + 10.56)
+ 
+Continuous-time zero/pole/gain model.
+
+Y_stability =
+  logical
+   1
+T_stability =
+  logical
+   1
+S_stability =
+  logical
+   1
+GS_stability =
+  logical
+   1
+M2 =
+    0.8909
+BW =
+    6.9502
+AE =
+  159.9388
+Gc_sym = 
+/ #1,  0,  0, 0, 0, 0 \
+|                     |
+|  0, #1,  0, 0, 0, 0 |
+|                     |
+\  0,  0, #1, 0, 0, 0 /
+
+where
+
+                   703418314428355 s                        10985
+   #1 == ------------------------------------- + --------------------------
+                       /     652603147754881 \      /     652603147754881 \
+         4398046511104 | s + --------------- |   32 | s + --------------- |
+                       \      17592186044416 /      \      17592186044416 /
+
+
+</pre><img vspace="5" hspace="5" src="Astrobee_Stowed_Translation_Youla_01.png" alt=""> <h2 id="6">Simulation</h2><pre class="codeinput">Lu = minreal(Gc * Gp, 1e-03);
+Ly = minreal(Gp * Gc, 1e-03);
+Y = minreal(inv(eye(3) + Lu) * Gc);
+Ty = minreal(inv(eye(6) + Ly) * Ly);
+Sy = minreal(inv(eye(6) + Ly), 1e-03);
+Su = minreal(inv(eye(3) + Lu), 1e-03);
+
+figure
+step(Ty);
+
+figure
+step(Y);
+
+figure
+sigma(Y, Ty, Sy, Su)
+[l, hObj] = legend(<span class="string">'$Y$'</span>, <span class="string">'$T_{y}$'</span>, <span class="string">'$S_{y}$'</span>, <span class="string">'$S_{u}$'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'FontSize'</span>, 12);
+set(l,<span class="string">'string'</span>,{<span class="string">'$Y$'</span>, <span class="string">'$T_{y}$'</span>, <span class="string">'$S_{y}$'</span>, <span class="string">'$S_{u}$'</span>});
+hL = findobj(hObj,<span class="string">'type'</span>,<span class="string">'line'</span>);
+set(hL,<span class="string">'linewidth'</span>, 2);
+
+figure
+sigma(Gc, Gp, Ly, Y)
+[l, hObj] = legend(<span class="string">'$G_{c}$'</span>, <span class="string">'$G_{p}$'</span>, <span class="string">'$L_{y}$'</span>, <span class="string">'$Y$'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'FontSize'</span>, 12);
+set(l,<span class="string">'string'</span>,{<span class="string">'$G_{c}$'</span>, <span class="string">'$G_{p}$'</span>, <span class="string">'$L_{y}$'</span>, <span class="string">'$Y$'</span>});
+hL = findobj(hObj,<span class="string">'type'</span>,<span class="string">'line'</span>);
+set(hL,<span class="string">'linewidth'</span>, 2);
+
+figure
+sigma(Gc, Gp, Y)
+[l, hObj] = legend(<span class="string">'$G_{c}$'</span>, <span class="string">'$G_{p}$'</span>, <span class="string">'$Y$'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'FontSize'</span>, 12);
+set(l,<span class="string">'string'</span>,{<span class="string">'$G_{c}$'</span>, <span class="string">'$G_{p}$'</span>, <span class="string">'$Y$'</span>});
+hL = findobj(hObj,<span class="string">'type'</span>,<span class="string">'line'</span>);
+set(hL,<span class="string">'linewidth'</span>, 2);
+
+figure
+sigma(Ly, Sy, Ty)
+[l, hObj] = legend(<span class="string">'$L_{y}$'</span>, <span class="string">'$S_{y}$'</span>, <span class="string">'$T_{y}$'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'FontSize'</span>, 12);
+set(l,<span class="string">'string'</span>,{<span class="string">'$L_{y}$'</span>, <span class="string">'$S_{y}$'</span>, <span class="string">'$T_{y}$'</span>});
+hL = findobj(hObj,<span class="string">'type'</span>,<span class="string">'line'</span>);
+set(hL,<span class="string">'linewidth'</span>, 2);
+
+figure
+sigma(Sy, Su)
+[l, hObj] = legend(<span class="string">'$S_{y}$'</span>, <span class="string">'$S_{u}$'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'FontSize'</span>, 12);
+set(l,<span class="string">'string'</span>,{<span class="string">'$S_{y}$'</span>, <span class="string">'$S_{u}$'</span>});
+hL = findobj(hObj,<span class="string">'type'</span>,<span class="string">'line'</span>);
+set(hL,<span class="string">'linewidth'</span>, 2);
+</pre><img vspace="5" hspace="5" src="Astrobee_Stowed_Translation_Youla_02.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Stowed_Translation_Youla_03.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Stowed_Translation_Youla_04.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Stowed_Translation_Youla_05.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Stowed_Translation_Youla_06.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Stowed_Translation_Youla_07.png" alt=""> <img vspace="5" hspace="5" src="Astrobee_Stowed_Translation_Youla_08.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Translation
+
+% Run sections sequentially
+
+%% System
+
+% A Matrix
+
+load Matrices/A_matrix.mat
+A = A_matrix
+
+% B Matrix: Stowed
+
+load Matrices/B_stowed.mat
+B = B_stowed
+
+% Full-State Feedback
+
+Cf = eye(12);
+
+Df = [zeros(12, 6)];
+
+sys_full = ss(A, B, Cf, Df);
+
+tf_full = minreal(tf(sys_full));
+
+tf_translation = minreal([tf_full(1:3, 1:3); tf_full(7:9, 1:3)]);
+
+tf_full_sym = simplify(tf2sym(tf_full));
+disp('tf_full_sym = ');
+pretty(tf_full_sym);
+
+tf_translation_sym = simplify(tf2sym(tf_translation));
+disp('tf_translation_sym = ');
+pretty(tf_translation_sym);
+
+%% Smith-McMillan Form
+
+% help smform
+
+s=tf('s');
+
+Gp = tf_translation;
+
+Mp = minreal(smform(Gp));
+
+syms s
+
+Gp_sym = tf_translation_sym;
+
+[UL_sym, H] = hermiteForm(Gp_sym * s^2);
+disp('UL_sym = ');
+pretty(UL_sym);
+
+Mp_sym = tf2sym(Mp);
+disp('Mp_sym = ');
+pretty(Mp_sym);
+
+UR_sym = (UL_sym * Gp_sym)\Mp_sym;
+disp('UR_sym = ');
+pretty(UR_sym);
+
+UL = sym2tf(UL_sym);
+
+UR = sym2tf(UR_sym);
+
+%% Interpolation Conditions
+
+% Run this section first to calculate 'tz' to ensure that the second interpolation condition is satisfied
+
+% d^k(T)/ds^k|(s=0) = 0, where k = 1 (since there is a double unstable pole
+% (multiplicity ap = 2) in the plant at s = 0; k = ap - 1) -> 2nd
+% interpolation condition
+
+% Constants & Design Parameters
+
+C = 1; % Constant
+Wn = 3.25; % Natural Frequency of the Control System
+K = Wn^2/C; % Controller Gain
+Z = 2^-0.5; % Damping Ratio
+tp = 1/(10*Wn); % Time constant (of the included pole)
+
+syms s tz
+
+T_eqn = ((K*C)*(tz*s + 1))/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1));
+dT_eqn = diff(T_eqn,s);
+eqn = subs(dT_eqn,s,0) == 0;
+tz = double(solve(eqn,tz))
+
+%% Control Design
+
+s = tf('s');
+
+% Plant TF, 'Gp'
+G = zpk(minreal(C/s^2)) % Nonzero terms of Mp
+
+% Chosen Youla Parameter, 'Y' -> Y(0) = 0
+Y = zpk(minreal(((K*s^2)*(tz*s + 1)/((s^2 + 2*Z*Wn*s + Wn^2)*(tp*s + 1))),1e-03))
+
+% Complementary Sensitivity TF, 'T' -> T(0) = 1 (1st interpolation
+% condition)
+T = zpk(minreal((Y*G),1e-03))
+
+% Sensitivity TF, 'S'
+S = zpk(minreal((1-T),1e-03))
+
+% Controller TF, 'Gc'
+Gc_term = zpk(minreal((Y/S),1e-03))
+
+% Return Ratio, 'L'
+L = zpk(minreal((Gc_term*G),1e-03))
+
+GS = zpk(minreal((G*S),1e-03))
+
+% Internal stability check
+Y_stability = isstable(Y)
+T_stability = isstable(T)
+S_stability = isstable(S)
+GS_stability = isstable(GS)
+
+M2 = 1/getPeakGain(S) % M2-margin
+BW = bandwidth(T) % Bandwidth of the closed-loop
+AE = getPeakGain(Y) % Maximum actuator effort
+
+figure(1)
+bodemag(Y, S, T);
+legend('Y','S','T');
+
+Gc = minreal([tf(Gc_term) 0 0 0 0 0; 0 tf(Gc_term) 0 0 0 0; 0 0 tf(Gc_term) 0 0 0]);
+
+Gc_sym = expand(tf2sym(Gc));
+disp('Gc_sym = ');
+pretty(Gc_sym);
+
+%% Simulation
+
+Lu = minreal(Gc * Gp, 1e-03);
+Ly = minreal(Gp * Gc, 1e-03);
+Y = minreal(inv(eye(3) + Lu) * Gc); 
+Ty = minreal(inv(eye(6) + Ly) * Ly); 
+Sy = minreal(inv(eye(6) + Ly), 1e-03);
+Su = minreal(inv(eye(3) + Lu), 1e-03);
+
+figure
+step(Ty);
+
+figure
+step(Y);
+
+figure
+sigma(Y, Ty, Sy, Su)
+[l, hObj] = legend('$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
+set(l,'string',{'$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$'});
+hL = findobj(hObj,'type','line');
+set(hL,'linewidth', 2); 
+
+figure
+sigma(Gc, Gp, Ly, Y)
+[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$','Interpreter','latex','FontSize', 12);
+set(l,'string',{'$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$'});
+hL = findobj(hObj,'type','line');
+set(hL,'linewidth', 2);
+
+figure
+sigma(Gc, Gp, Y)
+[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$Y$','Interpreter','latex','FontSize', 12);
+set(l,'string',{'$G_{c}$', '$G_{p}$', '$Y$'});
+hL = findobj(hObj,'type','line');
+set(hL,'linewidth', 2);
+
+figure
+sigma(Ly, Sy, Ty)
+[l, hObj] = legend('$L_{y}$', '$S_{y}$', '$T_{y}$','Interpreter','latex','FontSize', 12);
+set(l,'string',{'$L_{y}$', '$S_{y}$', '$T_{y}$'});
+hL = findobj(hObj,'type','line');
+set(hL,'linewidth', 2);
+
+figure
+sigma(Sy, Su)
+[l, hObj] = legend('$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
+set(l,'string',{'$S_{y}$', '$S_{u}$'});
+hL = findobj(hObj,'type','line');
+set(hL,'linewidth', 2); 
+
+
+
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
