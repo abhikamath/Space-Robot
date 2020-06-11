@@ -1,4 +1,4 @@
-%% Translation
+%% Astrobee Stowed Translation SIMO Youla Controller (I/O Channel 1)
 
 % Run sections sequentially
 
@@ -40,13 +40,19 @@ pretty(tf_translation_sym);
 
 s=tf('s');
 
-Gp = tf_translation;
+Gp = 500/7939*[1/s; 0; 0; 1/s^2; 0; 0];
 
 Mp = minreal(smform(Gp));
 
 syms s
 
-Gp_sym = tf_translation_sym;
+Gp_sym = tf2sym(Gp);
+
+Mp_sym = tf2sym(Mp);
+
+[UL_sym, H] = hermiteForm(Gp_sym * s^2)
+
+UR_sym = (UL_sym * Gp_sym)\Mp_sym
 
 % UL_sym = [7939/(500*s), 0, 0,  0,  0,  0;
 %           0, 7939/(500*s), 0,  0,  0,  0;
@@ -57,30 +63,32 @@ Gp_sym = tf_translation_sym;
 % 
 % UR_sym = eye(3);
       
-UL_sym = [0, 0, 0,  1,  0,  0;
-          0, 0, 0,  0,  1,  0;
-          0, 0, 0,  0,  0,  1;
-          -1, 0, 0,  s,  0,  0;
-          0, -1, 0,  0,  s,  0;
-          0, 0, -1,  0,  0,  s]
-      
-UR_sym = [7939/500, 0, 0;
-          0, 7939/500, 0;
-          0, 0, 7939/500]
+% UL_sym = [0, 0, 0,  1,  0,  0;
+%           0, 0, 0,  0,  1,  0;
+%           0, 0, 0,  0,  0,  1;
+%           -1, 0, 0,  s,  0,  0;
+%           0, -1, 0,  0,  s,  0;
+%           0, 0, -1,  0,  0,  s]
+%       
+% UR_sym = [7939/500, 0, 0;
+%           0, 7939/500, 0;
+%           0, 0, 7939/500]
 
+% UL_sym = [0 1; 1 -s];
+% UR_sym = 7939/500;
 
 disp('UL_sym = ');
 pretty(UL_sym);
 
-Mp_sym = tf2sym(Mp);
+% Mp_sym = tf2sym(Mp);
 disp('Mp_sym = ');
 pretty(Mp_sym);
 
 disp('UR_sym = ');
-UR_sym;
+UR_sym
 
 UL = sym2tf(UL_sym);
-UR = UR_sym;
+UR = double(UR_sym);
 
 %% Interpolation Conditions
 
@@ -152,7 +160,7 @@ legend('Ys','S','T');
 % disp('Gc_sym = ');
 % pretty(Gc_sym);
 
-My = minreal([[Ys 0 0; 0 Ys 0; 0 0 Ys] zeros(3, 3)], 1e-04);
+My = minreal([Ys 0 0 0 0 0], 1e-04);
 Mt = minreal(Mp * My, 1e-04);
 % Mt = minreal(T * eye(6), 1e-04);
 Y = minreal(UR * My * UL, 1e-04);
@@ -185,7 +193,7 @@ k_Gc = max(max(SV_Gc))/min(min(SV_Gc)) % condition-number check for Gc
 
 Lu = minreal(Gc * Gp, 1e-04);
 Ly = minreal(Gp * Gc, 1e-04);
-Su = minreal(inv(eye(3) + Lu), 1e-04);
+Su = minreal(inv(eye(size(Lu)) + Lu), 1e-04);
 
 figure
 step(Ty);
@@ -195,40 +203,43 @@ step(Y);
 
 figure
 sigma(Y, Ty, Sy, Su)
-[l, hObj] = legend('$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
+[l, hObj] = legend('$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 30);
 set(l,'string',{'$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$'});
 hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2); 
+set(hL,'linewidth', 5); 
 
-figure
-sigma(Gc, Gp, Ly, Y)
-[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2);
+% figure
+% sigma(Gc, Gp, Ly, Y)
+% [l, hObj] = legend('$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$','Interpreter','latex','FontSize', 12);
+% set(l,'string',{'$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$'});
+% hL = findobj(hObj,'type','line');
+% set(hL,'linewidth', 2);
+% 
+% figure
+% sigma(Gc, Gp, Y)
+% [l, hObj] = legend('$G_{c}$', '$G_{p}$', '$Y$','Interpreter','latex','FontSize', 12);
+% set(l,'string',{'$G_{c}$', '$G_{p}$', '$Y$'});
+% hL = findobj(hObj,'type','line');
+% set(hL,'linewidth', 2);
+% 
+% figure
+% sigma(Ly, Sy, Ty)
+% [l, hObj] = legend('$L_{y}$', '$S_{y}$', '$T_{y}$','Interpreter','latex','FontSize', 12);
+% set(l,'string',{'$L_{y}$', '$S_{y}$', '$T_{y}$'});
+% hL = findobj(hObj,'type','line');
+% set(hL,'linewidth', 2);
+% 
+% figure
+% sigma(Sy, Su)
+% [l, hObj] = legend('$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
+% set(l,'string',{'$S_{y}$', '$S_{u}$'});
+% hL = findobj(hObj,'type','line');
+% set(hL,'linewidth', 2); 
 
-figure
-sigma(Gc, Gp, Y)
-[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$Y$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$G_{c}$', '$G_{p}$', '$Y$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2);
+%% Save Controller
 
-figure
-sigma(Ly, Sy, Ty)
-[l, hObj] = legend('$L_{y}$', '$S_{y}$', '$T_{y}$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$L_{y}$', '$S_{y}$', '$T_{y}$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2);
-
-figure
-sigma(Sy, Su)
-[l, hObj] = legend('$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$S_{y}$', '$S_{u}$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2); 
-
-T_term2 = (100.6*s^2 + 40*s)/(s^5 + 15.41*s^4 + 64.8*s^3 + 116.2*s^2 + 100.6*s + 40);
+Gc_Stowed_Translation_SIMO_Youla_1 = Gc;
+save('Matrices/Gc_Stowed_Translation_SIMO_Youla_1.mat', 'Gc_Stowed_Translation_SIMO_Youla_1');
 
 
 

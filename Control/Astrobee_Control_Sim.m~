@@ -1,4 +1,0 @@
-files = dir('Matrices/*.mat');
-for i=1:length(files)
-    eval(['load ' files(i).name ' -ascii']);
-end
