@@ -1,4 +1,40 @@
-% Hinf example problem
+%% Astrobee Stowed H-infinity Control Design for Translation (hinfsyn)
+
+%% System
+
+% A Matrix
+
+load Matrices/A_matrix.mat
+A = A_matrix
+
+% B Matrix: Stowed
+
+load Matrices/B_stowed.mat
+B = B_stowed
+
+% Full-State Feedback
+
+Cf = eye(12);
+
+Df = [zeros(12, 6)];
+
+sys_full = ss(A, B, Cf, Df);
+
+tf_full = minreal(tf(sys_full));
+
+tf_translation = minreal([tf_full(1:3, 1:3); tf_full(7:9, 1:3)]);
+
+tf_full_sym = simplify(tf2sym(tf_full));
+disp('tf_full_sym = ');
+pretty(tf_full_sym);
+
+tf_translation_sym = simplify(tf2sym(tf_translation));
+disp('tf_translation_sym = ');
+pretty(tf_translation_sym);
+
+Gp = tf_translation;
+
+%% Hinf
 
 w=logspace(-3,3);
 
@@ -21,7 +57,7 @@ Gtfss=ss(Gtf);
 
 Wdtf=[makeweight(0.01,5,1000) 0 0 0 0 0; 0 makeweight(0.01,5,1000) 0 0 0 0; 0 0 makeweight(0.01,5,1000) 0 0 0; 0 0 0 makeweight(0.01,5,1000) 0 0; 0 0 0 0 makeweight(0.01,5,1000) 0; 0 0 0 0 0 makeweight(0.01,5,1000)];
 
-%% By students, define a new robust uncertanity filter
+%% define a new robust uncertanity filter
 
 Wdss=ss(Wdtf);
 [Ad,Bd,Cd,Dd]=ssdata(Wdss);
@@ -38,7 +74,7 @@ Wuss=ss(Wutf);
 
 Wptf=[makeweight(1000,0.5,0.1) 0 0 0 0 0; 0 makeweight(1000,0.5,0.1) 0 0 0 0; 0 0 makeweight(1000,0.5,0.1) 0 0 0; 0 0 0 makeweight(1000,0.5,0.1) 0 0; 0 0 0 0 makeweight(1000,0.5,0.1) 0; 0 0 0 0 0 makeweight(1000,0.5,0.1)];
 
-%% By students, defina a new performance filter
+%% define a new performance filter
 
 Wpss=ss(Wptf); [Ap,Bp,Cp,Dp]=ssdata(Wpss);
 [Ap,Bp,Cp,Dp]=minreal(Ap,Bp,Cp,Dp);
@@ -65,7 +101,9 @@ P = ss(A, B, C, D);
 % approach work properly.
 % acp1=acp+0.05*eye(size(acp));
 
-%% By students, compute Tzw using lft command
+%% compute Tzw using lft command
+
+acp = K.A; bcp = K.B; ccp = K.C; dcp = K.D;
 
 % open loop
 [aly,bly,cly,dly]=series(acp,bcp,ccp,dcp,Ag,Bg,Cg,Dg);
@@ -79,7 +117,7 @@ bs=bt;
 cs=-ct;
 ds=eye(6)-dt;
 
-[ay,by,cy,dy]=series(as,bs,cs,ds,acp1,bcp,ccp,dcp);
+[ay,by,cy,dy]=series(as,bs,cs,ds,acp,bcp,ccp,dcp);
 [ay,by,cy,dy]=minreal(ay,by,cy,dy);
 
 figure(1);
@@ -121,16 +159,18 @@ figure(6)
 sigma(Gtf)
 legend('Plant singular values')
 
-figure (7)
+
 %% By students, compute the maximum sigular value of Tzw from lft computation
+
+figure (7)
 %sigma(Tzw)
 hold on
-sigma(acl,bcl,ccl,dcl)
+sigma(CL/Gamma)
 legend('Inf norm of Tzw')
 
 Gc_ss=ss(acp,bcp,ccp,dcp);
 Gc_tf=tf(Gc_ss);
-Gc_tf=minreal(Gc_tf);
+Gc=minreal(Gc_tf);
 
 
 % save('Gc_Hinf_ss.mat','Gc_ss')  % function form
@@ -140,6 +180,11 @@ Gc_tf=minreal(Gc_tf);
 % Y = minreal(inv(eye(3) + Lu) * Gc); 
 % Ty = minreal(inv(eye(6) + Ly) * Ly);
 % Sy = minreal(inv(eye(6) + Ly), 1e-02);
+
+%% Save Controller
+
+Gc_Stowed_Translation_hinfsyn = Gc;
+save('Matrices/Gc_Stowed_Translation_hinfsyn.mat', 'Gc_Stowed_Translation_hinfsyn');
 
 
 

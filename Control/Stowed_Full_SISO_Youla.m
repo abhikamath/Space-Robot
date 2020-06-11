@@ -1,4 +1,6 @@
-% Astrobee Model
+%% Astrobee Stowed Fully Decoupled MIMO Youla Controller (Decoupled SISO Channels)
+
+% Run sections sequentially
 
 %% System
 
@@ -57,7 +59,8 @@ pretty(tf_coord_sym)
 % (multiplicity ap = 2) in the plant at s = 0; k = ap - 1) -> 2nd
 % interpolation condition
 
-C = 250/47; % Constant
+% Constant??> coefficients of (1/s^2) in the plant; run script for each constant and save the resulting SISO Gcs (saved in Gcs.mat for now)
+C = 250/47; % Make sure to modify Gcs.mat to account for changes made to this script
 Wn = 1; % Natural Frequency of the Control System
 K = Wn^2/C; % Controller Gain
 Z = 2^-0.5; % Damping Ratio
@@ -141,10 +144,10 @@ step(Y);
 
 figure
 sigma(Y, Ty, Sy, Su)
-[l, hObj] = legend('$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
+[l, hObj] = legend('$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 30);
 set(l,'string',{'$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$'});
 hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2); 
+set(hL,'linewidth', 5); 
 
 figure
 sigma(Gc, Gp, Ly, Y)
@@ -174,27 +177,13 @@ set(l,'string',{'$S_{y}$', '$S_{u}$'});
 hL = findobj(hObj,'type','line');
 set(hL,'linewidth', 2); 
 
-%% Coordinate Feedback
+%% Save Controller
 
-% Cc = [zeros(6, 12)];
-% Cc(1:6, 1:6) = eye(6);
-% 
-% Dc = [zeros(6, 6)];
-% 
-% sys_coord = ss(A, B, Cc, Dc);
-% 
-% tf_coord = tf(sys_coord);
-% 
-% syms s
-% 
-% tf_coord_sym = simplify(Cc * inv(s * eye(12) - A) * B + Dc);
-% pretty(tf_coord_sym)
-% 
-% translation_coord = [tf_coord_sym(1:3, 1:3); tf_coord_sym(7:9, 1:3)];
-% pretty(translation_coord)
-% 
-% attitude_coord = [tf_coord_sym(4:6, 4:6); tf_coord_sym(10:12, 4:6)];
-% pretty(attitude_coord)
+Plant_Stowed_Coord_FB = Gp;
+save('Matrices/Plant_Stowed_Coord_FB.mat', 'Plant_Stowed_Coord_FB');
+
+Gc_Stowed_Full_SISO_Youla = Gc;
+save('Matrices/Gc_Stowed_Full_SISO_Youla.mat', 'Gc_Stowed_Full_SISO_Youla');
 
 
 

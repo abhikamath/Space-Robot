@@ -1,0 +1,158 @@
+{
+    "source": "PyDy",
+    "name": "unnamed",
+    "newtonian_frame": "N",
+    "workspaceSize": 0.2,
+    "objects": {
+        "5108491544": {
+            "name": "Body_m",
+            "color": "black",
+            "material": "default",
+            "type": "Cube",
+            "length": 0.32,
+            "reference_frame_name": "B",
+            "simulation_id": 5108491544,
+            "init_orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                -0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                -0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0533333333333333,
+                1.0
+            ]
+        },
+        "5108491768": {
+            "name": "Body_l",
+            "color": "green",
+            "material": "default",
+            "type": "Cube",
+            "length": 0.32,
+            "reference_frame_name": "B",
+            "simulation_id": 5108491768,
+            "init_orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                -0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                -0.0,
+                1.0,
+                0.0,
+                0.0,
+                -0.12,
+                0.0,
+                1.0
+            ]
+        },
+        "5108492160": {
+            "name": "Body_r",
+            "color": "green",
+            "material": "default",
+            "type": "Cube",
+            "length": 0.32,
+            "reference_frame_name": "B",
+            "simulation_id": 5108492160,
+            "init_orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                -0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                -0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.12,
+                0.0,
+                1.0
+            ]
+        }
+    },
+    "cameras": {
+        "5108492776": {
+            "name": "DefaultCamera",
+            "color": "grey",
+            "material": "default",
+            "type": "PerspectiveCamera",
+            "reference_frame_name": "N",
+            "simulation_id": 5108492776,
+            "init_orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                10.0,
+                1.0
+            ],
+            "fov": 45.0,
+            "near": 1.0,
+            "far": 1000.0
+        }
+    },
+    "lights": {
+        "5108492944": {
+            "name": "DefaultLight",
+            "type": "PointLight",
+            "color": "white",
+            "simulation_id": 5108492944,
+            "init_orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                10.0,
+                1.0
+            ]
+        }
+    },
+    "simulationData": "2020-06-10_13-36-08_simulation_data.json",
+    "timeDelta": 0.05005005005005005,
+    "startTime": 0.0,
+    "fps": 30,
+    "speedup": 1.5015015015015016,
+    "timeSteps": 1000,
+    "constant_map": {
+        "I_x": 0.1083,
+        "I_y": 0.1083,
+        "I_z": 0.1083,
+        "m": 7
+    }
+}

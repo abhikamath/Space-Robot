@@ -1,4 +1,4 @@
-%% Translation
+%% Astrobee Stowed Translation MIMO Youla Controller
 
 % Run sections sequentially
 
@@ -195,40 +195,46 @@ step(Y);
 
 figure
 sigma(Y, Ty, Sy, Su)
-[l, hObj] = legend('$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
+[l, hObj] = legend('$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 30);
 set(l,'string',{'$Y$', '$T_{y}$', '$S_{y}$', '$S_{u}$'});
 hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2); 
+set(hL,'linewidth', 5); 
 
-figure
-sigma(Gc, Gp, Ly, Y)
-[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2);
+% figure
+% sigma(Gc, Gp, Ly, Y)
+% [l, hObj] = legend('$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$','Interpreter','latex','FontSize', 12);
+% set(l,'string',{'$G_{c}$', '$G_{p}$', '$L_{y}$', '$Y$'});
+% hL = findobj(hObj,'type','line');
+% set(hL,'linewidth', 2);
+% 
+% figure
+% sigma(Gc, Gp, Y)
+% [l, hObj] = legend('$G_{c}$', '$G_{p}$', '$Y$','Interpreter','latex','FontSize', 12);
+% set(l,'string',{'$G_{c}$', '$G_{p}$', '$Y$'});
+% hL = findobj(hObj,'type','line');
+% set(hL,'linewidth', 2);
+% 
+% figure
+% sigma(Ly, Sy, Ty)
+% [l, hObj] = legend('$L_{y}$', '$S_{y}$', '$T_{y}$','Interpreter','latex','FontSize', 12);
+% set(l,'string',{'$L_{y}$', '$S_{y}$', '$T_{y}$'});
+% hL = findobj(hObj,'type','line');
+% set(hL,'linewidth', 2);
+% 
+% figure
+% sigma(Sy, Su)
+% [l, hObj] = legend('$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
+% set(l,'string',{'$S_{y}$', '$S_{u}$'});
+% hL = findobj(hObj,'type','line');
+% set(hL,'linewidth', 2); 
 
-figure
-sigma(Gc, Gp, Y)
-[l, hObj] = legend('$G_{c}$', '$G_{p}$', '$Y$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$G_{c}$', '$G_{p}$', '$Y$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2);
+%% Save Controller
 
-figure
-sigma(Ly, Sy, Ty)
-[l, hObj] = legend('$L_{y}$', '$S_{y}$', '$T_{y}$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$L_{y}$', '$S_{y}$', '$T_{y}$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2);
+Plant_Stowed_Translation = Gp;
+save('Matrices/Plant_Stowed_Translation.mat', 'Plant_Stowed_Translation');
 
-figure
-sigma(Sy, Su)
-[l, hObj] = legend('$S_{y}$', '$S_{u}$','Interpreter','latex','FontSize', 12);
-set(l,'string',{'$S_{y}$', '$S_{u}$'});
-hL = findobj(hObj,'type','line');
-set(hL,'linewidth', 2); 
-
-T_term2 = (100.6*s^2 + 40*s)/(s^5 + 15.41*s^4 + 64.8*s^3 + 116.2*s^2 + 100.6*s + 40);
+Gc_Stowed_Translation_MIMO_Youla = Gc;
+save('Matrices/Gc_Stowed_Translation_MIMO_Youla.mat', 'Gc_Stowed_Translation_MIMO_Youla');
 
 
 
