@@ -10,3 +10,6 @@
 ## Multivariable Adaptive Robust Control for a Free-Flying Space Robot
 
  - [__Presentation__](https://docs.google.com/presentation/d/e/2PACX-1vS3p_XSzIAloHm6yW88_gNhY7axVsbDJdM3ST9jYcWEbqP54VewUVcQOJ2kT7r1NmuAyVA_8xpj7DmE/pub?start=true&loop=false&delayms=3000)
+ 
+  - [__Rendered Notebook__](https://nbviewer.jupyter.org/github/abhinavkamath/Space-Robot/blob/master/Astrobee_Euler.ipynb?flush_cache=true)
+
